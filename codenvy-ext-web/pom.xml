@@ -105,8 +105,8 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>**/web/css/editor/*.*</exclude>
-                        <exclude>**/web/html/editor/*.*</exclude>
+                        <exclude>**/web/css/editor/**/*.*</exclude>
+                        <exclude>**/web/html/editor/**/*.*</exclude>
                     </excludes>
                 </configuration>
             </plugin>

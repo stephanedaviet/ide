@@ -170,13 +170,13 @@
                     <artifactId>license-maven-plugin</artifactId>
                     <configuration>
                         <excludes>
-                            <exclude>**/ide/texteditor/api/*.*</exclude>
+                            <exclude>**/ide/texteditor/api/**/*.*</exclude>
                             <exclude>**/ide/text/TextSelection.java</exclude>
                             <exclude>**/ide/text/TextSelectionImpl.java</exclude>
                             <exclude>**/ide/text/TypedPosition.java</exclude>
                             <exclude>**/ide/text/annotation/AnnotationModelEvent.java</exclude>
-                            <exclude>**/ide/text/rules/*.*</exclude>
-                            <exclude>**/ide/text/undo/*.*</exclude>
+                            <exclude>**/ide/text/rules/**/*.*</exclude>
+                            <exclude>**/ide/text/undo/**/*.*</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
