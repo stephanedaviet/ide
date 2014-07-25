@@ -148,6 +148,10 @@ public class StandardComponentInitializer {
     @Inject
     private ExpandEditorAction expandEditorAction;
 
+    // instantiate ProjectStateHandler
+    @Inject
+    private ProjectStateHandler projectStateHandler;
+
     @Inject
     @Named("XMLFileType")
     private FileType xmlFile;

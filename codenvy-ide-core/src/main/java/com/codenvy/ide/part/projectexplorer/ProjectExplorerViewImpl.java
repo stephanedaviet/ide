@@ -13,17 +13,15 @@ package com.codenvy.ide.part.projectexplorer;
 import elemental.events.MouseEvent;
 
 import com.codenvy.api.project.shared.dto.ProjectDescriptor;
-import com.codenvy.ide.CoreLocalizationConstant;
 import com.codenvy.ide.Resources;
 import com.codenvy.ide.api.parts.base.BaseView;
-import com.codenvy.ide.collections.Array;
 import com.codenvy.ide.api.ui.tree.AbstractTreeNode;
+import com.codenvy.ide.collections.Array;
 import com.codenvy.ide.tree.ProjectTreeNodeDataAdapter;
 import com.codenvy.ide.tree.ProjectTreeNodeRenderer;
 import com.codenvy.ide.ui.tree.Tree;
 import com.codenvy.ide.ui.tree.TreeNodeElement;
 import com.codenvy.ide.util.input.SignalEvent;
-import com.google.gwt.dom.client.Document;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.inject.Inject;
@@ -34,25 +32,23 @@ import org.vectomatic.dom.svg.ui.SVGImage;
 import javax.validation.constraints.NotNull;
 
 /**
- * Tree-based Project Explorer view.
+ * Project Explorer view.
  *
  * @author Andrey Plotnikov
  * @author Artem Zatsarynnyy
  */
 @Singleton
 public class ProjectExplorerViewImpl extends BaseView<ProjectExplorerView.ActionDelegate> implements ProjectExplorerView {
-    private final CoreLocalizationConstant  locale;
-    protected     Tree<AbstractTreeNode<?>> tree;
-    private       Resources                 resources;
-    private       FlowPanel                 projectHeader;
-    private       AbstractTreeNode<?>       rootNode;
+    protected Tree<AbstractTreeNode<?>> tree;
+    private   Resources                 resources;
+    private   FlowPanel                 projectHeader;
+    private   AbstractTreeNode<?>       rootNode;
 
     /** Create view. */
     @Inject
-    public ProjectExplorerViewImpl(Resources resources, ProjectTreeNodeRenderer projectTreeNodeRenderer, CoreLocalizationConstant locale) {
+    public ProjectExplorerViewImpl(Resources resources, ProjectTreeNodeRenderer projectTreeNodeRenderer) {
         super(resources);
         this.resources = resources;
-        this.locale = locale;
 
         projectHeader = new FlowPanel();
         projectHeader.setStyleName(resources.partStackCss().idePartStackToolbarBottom());
@@ -62,7 +58,7 @@ public class ProjectExplorerViewImpl extends BaseView<ProjectExplorerView.Action
         tree.asWidget().ensureDebugId("projectExplorerTree-panel");
         minimizeButton.ensureDebugId("projectExplorer-minimizeBut");
 
-        rootNode = new AbstractTreeNode(null, null) {
+        rootNode = new AbstractTreeNode<Void>(null, null) {
             @Override
             public String getName() {
                 return "root";
@@ -141,14 +137,8 @@ public class ProjectExplorerViewImpl extends BaseView<ProjectExplorerView.Action
     /** {@inheritDoc} */
     @Override
     public void updateItem(AbstractTreeNode<?> oldResource, AbstractTreeNode<?> newResource) {
-        Array<Array<String>> paths = tree.replaceSubtree(oldResource, newResource, true);
-
-        TreeNodeElement<AbstractTreeNode<?>> nodeElement = tree.getNode(newResource);
-        if (nodeElement != null) {
-            tree.closeNode(nodeElement);
-            tree.expandNode(nodeElement);
-        }
-        tree.expandPaths(paths, false);
+        Array<Array<String>> pathsToExpand = tree.replaceSubtree(oldResource, newResource, true);
+        tree.expandPaths(pathsToExpand, false);
     }
 
     /** {@inheritDoc} */
@@ -171,7 +161,6 @@ public class ProjectExplorerViewImpl extends BaseView<ProjectExplorerView.Action
 
         InlineLabel projectTitle = new InlineLabel(project.getName());
         projectHeader.add(projectTitle);
-        Document.get().setTitle(locale.projectOpenedTitle(project.getName()));
     }
 
     /** {@inheritDoc} */
@@ -179,6 +168,5 @@ public class ProjectExplorerViewImpl extends BaseView<ProjectExplorerView.Action
     public void hideProjectHeader() {
         toolBar.remove(projectHeader);
         container.setWidgetSize(toolBar, 22);
-        Document.get().setTitle(locale.projectClosedTitle());
     }
 }
