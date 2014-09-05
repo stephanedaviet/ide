@@ -123,7 +123,7 @@ public class CustomRunPresenter implements CustomRunView.ActionDelegate {
 
     private Array<RunnerEnvironment> getEnvironmentsForProject(CurrentProject project, Array<RunnerDescriptor> runners) {
         Array<RunnerEnvironment> environments = Collections.createArray();
-        final String runnerName = project.getAttributeValue(Constants.RUNNER_NAME);
+        final String runnerName = project.getRunner();
         for (RunnerDescriptor runnerDescriptor : runners.asIterable()) {
             if (runnerName.equals(runnerDescriptor.getName())) {
                 for (RunnerEnvironment environment : runnerDescriptor.getEnvironments().values()) {
