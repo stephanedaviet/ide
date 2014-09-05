@@ -110,7 +110,11 @@ public class CustomRunViewImpl extends Window implements CustomRunView {
     @NotNull
     @Override
     public RunnerEnvironment getSelectedEnvironment() {
-        return runnerEnvironments.get(environmentField.getSelectedIndex());
+        int selectedIndex = environmentField.getSelectedIndex();
+        if (selectedIndex != -1) {
+            return runnerEnvironments.get(selectedIndex);
+        }
+        return null;
     }
 
     @Override
