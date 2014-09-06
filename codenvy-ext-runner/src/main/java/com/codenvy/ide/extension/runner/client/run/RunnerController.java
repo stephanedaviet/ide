@@ -14,6 +14,8 @@ import com.codenvy.api.core.rest.shared.dto.Link;
 import com.codenvy.api.core.rest.shared.dto.ServiceError;
 import com.codenvy.api.project.gwt.client.ProjectServiceClient;
 import com.codenvy.api.project.shared.dto.ItemReference;
+import com.codenvy.api.project.shared.dto.ProjectDescriptor;
+import com.codenvy.api.project.shared.dto.RunnerEnvironmentConfigurationDescriptor;
 import com.codenvy.api.runner.ApplicationStatus;
 import com.codenvy.api.runner.dto.ApplicationProcessDescriptor;
 import com.codenvy.api.runner.dto.DebugMode;
@@ -52,6 +54,8 @@ import com.codenvy.ide.rest.StringUnmarshaller;
 import com.codenvy.ide.rest.Unmarshallable;
 import com.codenvy.ide.ui.dialogs.ask.Ask;
 import com.codenvy.ide.ui.dialogs.ask.AskHandler;
+import com.codenvy.ide.ui.dialogs.info.Info;
+import com.codenvy.ide.ui.dialogs.info.InfoHandler;
 import com.codenvy.ide.util.StringUtils;
 import com.codenvy.ide.util.loging.Log;
 import com.codenvy.ide.websocket.MessageBus;
@@ -128,6 +132,7 @@ public class RunnerController implements Notification.OpenNotificationHandler {
     private   Timer                                             totalActiveTimeTimer;
     private   RunnerMetric                                      totalActiveTimeMetric; //calculate on client-side
     private   String                                            theme;
+    private   int                                               overrideRAM;
 
     @Inject
     public RunnerController(EventBus eventBus,
@@ -279,11 +284,91 @@ public class RunnerController implements Notification.OpenNotificationHandler {
                 dtoUnmarshallerFactory.newUnmarshaller(ResourcesDescriptor.class)) {
             @Override
             protected void onSuccess(ResourcesDescriptor resourcesDescriptor) {
-                //TODO Add RAM Check for each Runner Request
+                final int requiredMemory;
+                int totalMemory = Integer.valueOf(resourcesDescriptor.getTotalMemory());
+                int usedMemory = Integer.valueOf(resourcesDescriptor.getUsedMemory());
 
-                if (runOptions != null) {
+                RunnerEnvironmentConfigurationDescriptor runEnvConfDescr;
+                ProjectDescriptor projectDescriptor = appContext.getCurrentProject().getProjectDescription();
+                Map<String, RunnerEnvironmentConfigurationDescriptor> runEnvConfigurations = projectDescriptor.getRunnerEnvironmentConfigurations();
+
+                if (runOptions != null && projectDescriptor != null && runEnvConfigurations.containsKey(runOptions.getEnvironmentId())) {
+                    runEnvConfDescr = runEnvConfigurations.get(runOptions.getEnvironmentId());
+                    requiredMemory = runEnvConfDescr.getRequiredMemorySize();
+
+                    if (!isSufficientMemory(totalMemory, usedMemory, requiredMemory)) {
+                        return;
+                    }
+                    overrideRAM = runOptions.getMemorySize();
+                    overrideRAM = (overrideRAM > 0) ? overrideRAM : requiredMemory;
+
+                    if (overrideRAM < requiredMemory) {
+                        Info warningWindow =
+                                new Info(constant.titlesWarning(), constant.messagesOverrideLessRequiredMemory(overrideRAM, requiredMemory),
+                                         new InfoHandler() {
+                                             @Override
+                                             public void onOk() {
+                                                 Ask ask = new Ask(constant.titlesWarning(), constant.messagesOverrideMemory(),
+                                                                   new AskHandler() {
+                                                                       @Override
+                                                                       public void onOk() {
+                                                                           runOptions.setMemorySize(requiredMemory);
+                                                                           runActiveProject(runOptions, null, isUserAction);
+                                                                       }
+                                                                   }
+                                                 );
+                                                 ask.show();
+                                             }
+                                         }
+                                );
+                        warningWindow.show();
+                        return;
+                    }
+                    runOptions.setMemorySize(overrideRAM);
                     runActiveProject(runOptions, null, isUserAction);
-                } else {
+
+                } else if (projectDescriptor != null && runEnvConfigurations.containsKey("default")) {
+                    runEnvConfDescr = runEnvConfigurations.get("default");
+                    requiredMemory = runEnvConfDescr.getRequiredMemorySize();
+                    overrideRAM = 0;
+
+                    if (!isSufficientMemory(totalMemory, usedMemory, requiredMemory)) {
+                        return;
+                    }
+
+                    Map<String, String> preferences = appContext.getCurrentUser().getProfile().getPreferences();
+                    if (preferences != null && preferences.containsKey(RunnerExtension.PREFS_RUNNER_RAM_SIZE_DEFAULT)) {
+                        try {
+                            overrideRAM = Integer.parseInt(preferences.get(RunnerExtension.PREFS_RUNNER_RAM_SIZE_DEFAULT));
+                        } catch (NumberFormatException e) {
+                            //do nothing
+                        }
+                    }
+                    overrideRAM = (overrideRAM > 0) ? overrideRAM : requiredMemory;
+
+                    if (overrideRAM < requiredMemory) {
+                        Info warningWindow =
+                                new Info(constant.titlesWarning(), constant.messagesOverrideLessRequiredMemory(overrideRAM, requiredMemory),
+                                         new InfoHandler() {
+                                             @Override
+                                             public void onOk() {
+                                                 Ask ask = new Ask(constant.titlesWarning(), constant.messagesOverrideMemory(),
+                                                                   new AskHandler() {
+                                                                       @Override
+                                                                       public void onOk() {
+                                                                           overrideRAM = requiredMemory;
+                                                                           runActiveProject(null, false, null, isUserAction);
+                                                                       }
+                                                                   }
+                                                 );
+                                                 ask.show();
+                                             }
+                                         }
+                                );
+                        warningWindow.show();
+                        return;
+                    }
+
                     runActiveProject(null, false, null, isUserAction);
                 }
             }
@@ -347,13 +432,12 @@ public class RunnerController implements Notification.OpenNotificationHandler {
         } else if (currentProject.getRunnerEnvId() != null) {
             runOptions.setEnvironmentId(currentProject.getRunnerEnvId());
         }
+        if (overrideRAM > 0 ) {
+            runOptions.setMemorySize(overrideRAM);
+        }
 
         runOptions.getShellOptions().put("WebShellTheme", theme);
         runOptions.setSkipBuild(Boolean.parseBoolean(currentProject.getAttributeValue("runner:skipBuild")));
-
-
-        setDefaultRam2runOptions(runOptions);
-
 
         if (isUserAction) {
             console.setActive();
@@ -440,17 +524,17 @@ public class RunnerController implements Notification.OpenNotificationHandler {
                    );
     }
 
-    private void setDefaultRam2runOptions(RunOptions runOptions) {
-        Map<String, String> preferences = appContext.getCurrentUser().getProfile().getPreferences();
-        if (preferences != null && preferences.containsKey(RunnerExtension.PREFS_RUNNER_RAM_SIZE_DEFAULT)) {
-            try {
-                Log.info(RunnerController.class, preferences.get(RunnerExtension.PREFS_RUNNER_RAM_SIZE_DEFAULT));
-                int ram = Integer.parseInt(preferences.get(RunnerExtension.PREFS_RUNNER_RAM_SIZE_DEFAULT));
-                runOptions.setMemorySize(ram);
-            } catch (NumberFormatException e) {
-                Log.error(RunnerController.class, e);
-            }
+    private boolean isSufficientMemory(int totalMemory, int usedMemory, final int requiredMemory) {
+        int availableMemory = totalMemory - usedMemory;
+        if (totalMemory < requiredMemory) {
+            showWarning(constant.messagesTotalLessRequiredMemory(totalMemory, requiredMemory));
+            return false;
         }
+        if (availableMemory < requiredMemory) {
+            showWarning(constant.messagesAvailableLessRequiredMemory(totalMemory, usedMemory, requiredMemory));
+            return false;
+        }
+        return true;
     }
 
     private void startCheckingAppStatus(final ApplicationProcessDescriptor applicationProcessDescriptor) {
@@ -760,6 +844,11 @@ public class RunnerController implements Notification.OpenNotificationHandler {
                 }
             }
         }
+    }
+
+    private void showWarning(String warning) {
+        Info warningWindow = new Info(constant.titlesWarning(), warning);
+        warningWindow.show();
     }
 
     /** Returns URL of the application which is currently running. */

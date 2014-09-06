@@ -124,6 +124,24 @@ public interface RunnerLocalizationConstant extends Messages {
     @Key("messages.failedSaveFiles")
     String messageFailedSaveFiles();
 
+    @Key("messages.totalLessRequiredMemory")
+    String messagesTotalLessRequiredMemory(int totalRAM, int requestedRAM);
+
+    @Key("messages.totalLessCustomRunMemory")
+    String messagesTotalLessCustomRunMemory(int customRunRAM);
+
+    @Key("messages.availableLessCustomRunMemory")
+    String messagesAvailableLessCustomRunMemory(int customRunRAM);
+
+    @Key("messages.availableLessRequiredMemory")
+    String messagesAvailableLessRequiredMemory(int totalRAM, int usedRAM, int requestedRAM);
+
+    @Key("messages.overrideLessRequiredMemory")
+    String messagesOverrideLessRequiredMemory(int overrideRAM, int requestedRAM);
+
+    @Key("messages.overrideMemory")
+    String messagesOverrideMemory();
+
     @Key("appWillBeStopped")
     String appWillBeStopped(String appName);
 
@@ -148,7 +166,7 @@ public interface RunnerLocalizationConstant extends Messages {
     String titlesRamManager();
 
     @Key("ram-manager.ram-size-must-multiple")
-    @DefaultMessage("RAM size muat be a value that is a multiple of {0} MB")
+    @DefaultMessage("RAM size must be a positive value that is a multiple of {0} MB")
     String ramSizeMustBeMultipleOf(String multiple);
 
     /* RunConfigurationView */
