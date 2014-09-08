@@ -295,12 +295,12 @@ public class RunnerController implements Notification.OpenNotificationHandler {
                 if (runOptions != null && projectDescriptor != null && runEnvConfigurations.containsKey(runOptions.getEnvironmentId())) {
                     runEnvConfDescr = runEnvConfigurations.get(runOptions.getEnvironmentId());
                     requiredMemory = runEnvConfDescr.getRequiredMemorySize();
+                    overrideRAM = runOptions.getMemorySize();
+                    overrideRAM = (overrideRAM > 0) ? overrideRAM : requiredMemory;
 
                     if (!isSufficientMemory(totalMemory, usedMemory, requiredMemory)) {
                         return;
                     }
-                    overrideRAM = runOptions.getMemorySize();
-                    overrideRAM = (overrideRAM > 0) ? overrideRAM : requiredMemory;
 
                     if (overrideRAM < requiredMemory) {
                         Info warningWindow =
@@ -332,10 +332,6 @@ public class RunnerController implements Notification.OpenNotificationHandler {
                     requiredMemory = runEnvConfDescr.getRequiredMemorySize();
                     overrideRAM = 0;
 
-                    if (!isSufficientMemory(totalMemory, usedMemory, requiredMemory)) {
-                        return;
-                    }
-
                     Map<String, String> preferences = appContext.getCurrentUser().getProfile().getPreferences();
                     if (preferences != null && preferences.containsKey(RunnerExtension.PREFS_RUNNER_RAM_SIZE_DEFAULT)) {
                         try {
@@ -345,6 +341,10 @@ public class RunnerController implements Notification.OpenNotificationHandler {
                         }
                     }
                     overrideRAM = (overrideRAM > 0) ? overrideRAM : requiredMemory;
+
+                    if (!isSufficientMemory(totalMemory, usedMemory, requiredMemory)) {
+                        return;
+                    }
 
                     if (overrideRAM < requiredMemory) {
                         Info warningWindow =
@@ -532,6 +532,14 @@ public class RunnerController implements Notification.OpenNotificationHandler {
         }
         if (availableMemory < requiredMemory) {
             showWarning(constant.messagesAvailableLessRequiredMemory(totalMemory, usedMemory, requiredMemory));
+            return false;
+        }
+        if (totalMemory < overrideRAM) {
+            showWarning(constant.messagesTotalLessOverrideMemory(overrideRAM, totalMemory));
+            return false;
+        }
+        if (availableMemory < overrideRAM) {
+            showWarning(constant.messagesAvailableLessOverrideMemory(overrideRAM, totalMemory, usedMemory));
             return false;
         }
         return true;

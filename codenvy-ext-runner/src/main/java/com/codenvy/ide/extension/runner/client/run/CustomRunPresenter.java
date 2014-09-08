@@ -161,12 +161,12 @@ public class CustomRunPresenter implements CustomRunView.ActionDelegate {
         int availableMemory = view.getAvailableMemorySize();
 
         if (runnerMemory > totalMemory) {
-            view.showWarning(constant.messagesTotalLessCustomRunMemory(runnerMemory));
+            view.showWarning(constant.messagesTotalLessCustomRunMemory(runnerMemory, totalMemory));
             return false;
         }
 
         if (runnerMemory > availableMemory) {
-            view.showWarning(constant.messagesAvailableLessCustomRunMemory(runnerMemory));
+            view.showWarning(constant.messagesAvailableLessOverrideMemory(runnerMemory, totalMemory, totalMemory - availableMemory));
             return false;
         }
         return true;
