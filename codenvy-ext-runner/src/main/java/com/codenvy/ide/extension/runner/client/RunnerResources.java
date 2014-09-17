@@ -81,13 +81,13 @@ public interface RunnerResources extends ClientBundle {
         @ClassName("tab-selected")
         String tabSelected();
 
-        @ClassName("partIcon")
+        @ClassName("part-icon")
         String partIcon();
 
-        @ClassName("inQueue")
+        @ClassName("in-queue")
         String inQueue();
 
-        @ClassName("inProgress")
+        @ClassName("in-progress")
         String inProgress();
 
         @ClassName("running")

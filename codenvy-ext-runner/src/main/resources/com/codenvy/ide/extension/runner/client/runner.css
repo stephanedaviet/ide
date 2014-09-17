@@ -35,7 +35,7 @@
     border-right-color: #343434;
 }
 
-svg.partIcon {
+svg.part-icon {
     width: 14px;
     height: 14px;
     float: right;
@@ -43,10 +43,10 @@ svg.partIcon {
     top: 1px;
 }
 
-.inQueue {
+.in-queue {
     fill: mainFontColor;
 }
-.inProgress {
+.in-progress {
     fill: #56e33b;
 }
 .running {
