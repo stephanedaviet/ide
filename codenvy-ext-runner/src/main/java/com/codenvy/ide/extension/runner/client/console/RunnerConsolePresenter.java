@@ -74,8 +74,8 @@ public class RunnerConsolePresenter extends BasePresenter implements RunnerConso
     private void onPartActivated(PartPresenter part) {
         if (part != null && part.equals(this) && isUnread) {
             isUnread = false;
-            firePropertyChange(TITLE_PROPERTY);
         }
+        firePropertyChange(TITLE_PROPERTY);
     }
 
     /** {@inheritDoc} */
@@ -164,6 +164,7 @@ public class RunnerConsolePresenter extends BasePresenter implements RunnerConso
 
     public void setCurrentRunnerStatus(RunnerStatus currentRunnerStatus) {
         this.currentRunnerStatus = currentRunnerStatus;
+        firePropertyChange(TITLE_PROPERTY);
     }
 
     /**
@@ -179,7 +180,6 @@ public class RunnerConsolePresenter extends BasePresenter implements RunnerConso
         }
         view.print(message);
         view.scrollBottom();
-        firePropertyChange(TITLE_PROPERTY);
     }
 
     /** Sets the console active (selected) in the parts stack. */

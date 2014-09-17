@@ -135,6 +135,7 @@ public class BuilderConsolePresenter extends BasePresenter implements BuilderCon
 
     public void setCurrentBuilderStatus(BuilderStatus currentBuilderStatus) {
         this.currentBuilderStatus = currentBuilderStatus;
+        firePropertyChange(TITLE_PROPERTY);
     }
 
     /** {@inheritDoc} */
@@ -161,7 +162,6 @@ public class BuilderConsolePresenter extends BasePresenter implements BuilderCon
         if (activePart == null || !activePart.equals(this)) {
             isUnread = true;
         }
-        firePropertyChange(TITLE_PROPERTY);
     }
 
     /**
