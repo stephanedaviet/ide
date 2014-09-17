@@ -773,7 +773,7 @@ public class RunController implements Notification.OpenNotificationHandler {
                 notification.setMessage(constant.applicationFailed(projectName));
 
                 console.setCurrentRunnerStatus(RunnerStatus.FAILED);
-                console.print("[INFO] " + notification.getMessage());
+                console.print("[ERROR] " + notification.getMessage());
 
                 console.onAppStopped();
                 break;
@@ -791,7 +791,7 @@ public class RunController implements Notification.OpenNotificationHandler {
                 notification.setMessage(constant.applicationCanceled(projectName));
 
                 console.setCurrentRunnerStatus(RunnerStatus.DONE);
-                console.print("[INFO] " + notification.getMessage());
+                console.print("[ERROR] " + notification.getMessage());
 
                 console.onAppStopped();
                 break;
